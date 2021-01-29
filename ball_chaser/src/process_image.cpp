@@ -8,7 +8,7 @@ ros::ServiceClient client;
 // function to drive robot via service
 void drive_robot(float lin_x, float ang_z)
 {
-    ROS_INFO("Driving robot to target");
+    ROS_INFO("Service requested..");
 
     // requesting wheel velocities 
     ball_chaser::DriveToTarget srv;
@@ -26,12 +26,68 @@ void process_image_callback(const sensor_msgs::Image img)
     ROS_INFO("process_image_callback() is started ");
 
     int white_pixel = 255;
+    int white_pixel_number = { };
     bool white_pixel_found = false;
-    enum split_image{left, middle, right}; 
-    split_image side;
+    /* enum split_image{left, middle, right}; 
+    split_image side; */
     //int matrix_image[img.height][img.width] = { };
 
-    for(int i=0; i < img.height*(img.step/3); i++)
+
+    //to find white pixel and store its pixel number
+    for(int i=0; i < img.height*img.step; i++)
+    {
+        if(img.data[i] == white_pixel)
+        {
+            ROS_INFO("White pixel found!!");
+            white_pixel_found = true;
+            white_pixel_number = i;
+            ROS_INFO_STREAM("white pixel number: " << std::to_string(white_pixel_number));
+            break;
+        }
+    }
+
+   
+    // To find which side white pixel lie and drive robot accordingly 
+    if(white_pixel_found == true)
+    {
+        int diciding_factor = white_pixel_number % img.width;
+        ROS_INFO_STREAM("diciding factor: " << std::to_string(diciding_factor));
+        ROS_INFO_STREAM("image width*2/3: " << std::to_string(img.width*2/3));
+        if(diciding_factor < img.width/3 )
+        {
+            ROS_INFO("Image left");
+            drive_robot(0.1,0.1);
+            //ros::Duration(3).sleep();
+        }
+        else if( diciding_factor >= (img.width/3) && diciding_factor <= (img.width*2/3))
+        {
+            ROS_INFO("Image middel");
+            drive_robot(0.5,0);
+            //ros::Duration(3).sleep();
+
+        }
+        else if(diciding_factor > (img.width*2/3) )
+        {
+            ROS_INFO("Image right");
+            drive_robot(0.1,-0.1);
+            //ros::Duration(3).sleep();
+
+        }
+        else
+        {
+            ROS_INFO("couldn't find robot direction ");
+        }
+    }
+    else
+    {
+        drive_robot(0,0);
+        ros::Duration(3).sleep();
+        ROS_INFO("No white pixel found!!, STOP the robot");
+    }
+
+    ROS_INFO("End of process_image_callback()...");
+
+    /* for(int i=0; i < img.height*(img.step/3); i++)
     {
         if(img.data[i] == white_pixel)
         {
@@ -59,29 +115,34 @@ void process_image_callback(const sensor_msgs::Image img)
             ROS_INFO("White pixel found at right side of Image!!");
             break;
         }
-    }
+    } */
 
     
     /* // converting given image into matrix format
     for(int i=0; i < img.height; i++) //traversing through image rows
     {
-        for(int j=0; j < img.width; j++)// traversing through image columns
+        for(int j=0; j < img.step; j++)// traversing through image columns
         {
-            if(img.data[(i*img.width) + j] == 255)
+            matrix_image[i][j] = img.data[(i*img.step) + j];
+            /* if(img.data[(i*img.width) + j] == 255)
             {
                 ROS_INFO("White pixel found!!");
                 break;
-            }
-            // matrix_image[i][j] = img.data[(i*img.width) + j]; 
+            } 
+            //  
         }
-    } */
+    }*/
 
-    /*ROS_INFO("Image is converted to matrix format");
+    /* printf("Image height: %d", img.height);
+    printf("Image width: %d", img.width);
+    printf("Image step: %d", img.step); */
+
+    /* ROS_INFO("Image is converted to matrix format");
             
     // to find white pixel in image
     for(int i=0; i < img.height; i++) //traversing through image rows
     {
-        for(int j=0; j < img.width; j++)// traversing through image columns
+        for(int j=0; j < img.step; j++)// traversing through image columns
         {
             if(matrix_image[i][j] == white_pixel)
             {
@@ -108,7 +169,7 @@ void process_image_callback(const sensor_msgs::Image img)
                 break;
             }
         }
-    } */
+    }  */
 
     // driving robot 
     /* if(white_pixel_found == true)
