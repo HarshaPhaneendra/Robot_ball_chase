@@ -25,182 +25,52 @@ void process_image_callback(const sensor_msgs::Image img)
 {
     ROS_INFO("process_image_callback() is started ");
 
-    int white_pixel = 255;
-    int white_pixel_number = { };
-    bool white_pixel_found = false;
-    /* enum split_image{left, middle, right}; 
-    split_image side; */
-    //int matrix_image[img.height][img.width] = { };
+    int white_pixel = 255;  
+    int ball_pos;
+    int ball_pos_center;
+    int ball_pos_sum = 0;
+    int white_pixel_num = 0;
 
-
-    //to find white pixel and store its pixel number
-    for(int i=0; i < img.height*img.step; i++)
+    // searching for white pixel in image frame
+    for (int k = 0; k+2 < img.data.size(); k = k+3)
     {
-        if(img.data[i] == white_pixel)
+        if ((img.data[k] == white_pixel) && (img.data[k+1] == white_pixel) && (img.data[k+2] == white_pixel))
         {
-            ROS_INFO("White pixel found!!");
-            white_pixel_found = true;
-            white_pixel_number = i;
-            ROS_INFO_STREAM("white pixel number: " << std::to_string(white_pixel_number));
-            break;
+            ball_pos = (k % (img.width * 3)) / 3;
+            ball_pos_sum += ball_pos;
+            white_pixel_num++;
         }
     }
 
-   
-    // To find which side white pixel lie and drive robot accordingly 
-    if(white_pixel_found == true)
+    if (white_pixel_num == 0)
     {
-        int diciding_factor = white_pixel_number % img.width;
-        ROS_INFO_STREAM("diciding factor: " << std::to_string(diciding_factor));
-        ROS_INFO_STREAM("image width*2/3: " << std::to_string(img.width*2/3));
-        if(diciding_factor < img.width/3 )
-        {
-            ROS_INFO("Image left");
-            drive_robot(0.1,0.1);
-            //ros::Duration(3).sleep();
-        }
-        else if( diciding_factor >= (img.width/3) && diciding_factor <= (img.width*2/3))
-        {
-            ROS_INFO("Image middel");
-            drive_robot(0.5,0);
-            //ros::Duration(3).sleep();
+        ROS_INFO("White pixel not found!, STOP the robot.");
+        drive_robot(0,0);
+    }
+    else
+    {
+        ROS_INFO("White pixel found...");
+        ball_pos_center = ball_pos_sum / white_pixel_num;
 
-        }
-        else if(diciding_factor > (img.width*2/3) )
+        if (ball_pos_center < img.width / 3)
         {
-            ROS_INFO("Image right");
-            drive_robot(0.1,-0.1);
-            //ros::Duration(3).sleep();
-
+            ROS_INFO("Turn left");
+            drive_robot(0.1, 0.1);
+        }
+        else if(ball_pos_center > img.width * 2 / 3)
+        {
+            ROS_INFO("Turn right");
+            drive_robot(0.1, -0.1);
         }
         else
         {
-            ROS_INFO("couldn't find robot direction ");
+            ROS_INFO("Go Straight");
+            drive_robot(0.1, 0);
         }
-    }
-    else
-    {
-        drive_robot(0,0);
-        ros::Duration(3).sleep();
-        ROS_INFO("No white pixel found!!, STOP the robot");
     }
 
     ROS_INFO("End of process_image_callback()...");
-
-    /* for(int i=0; i < img.height*(img.step/3); i++)
-    {
-        if(img.data[i] == white_pixel)
-        {
-            side = left;
-            ROS_INFO("White pixel found at left side of Image!!");
-            break;
-        }
-    }
-
-    for(int i=img.height*(img.step/3); i < img.height*(2*img.step/3); i++)
-    {
-        if(img.data[i] == white_pixel)
-        {
-            side = middle;
-            ROS_INFO("White pixel found at middle of Image!!");
-            break;
-        }
-    }
-
-    for(int i=img.height*(2*img.step/3); i < img.height*img.step; i++)
-    {
-        if(img.data[i] == white_pixel)
-        {
-            side = right;
-            ROS_INFO("White pixel found at right side of Image!!");
-            break;
-        }
-    } */
-
     
-    /* // converting given image into matrix format
-    for(int i=0; i < img.height; i++) //traversing through image rows
-    {
-        for(int j=0; j < img.step; j++)// traversing through image columns
-        {
-            matrix_image[i][j] = img.data[(i*img.step) + j];
-            /* if(img.data[(i*img.width) + j] == 255)
-            {
-                ROS_INFO("White pixel found!!");
-                break;
-            } 
-            //  
-        }
-    }*/
-
-    /* printf("Image height: %d", img.height);
-    printf("Image width: %d", img.width);
-    printf("Image step: %d", img.step); */
-
-    /* ROS_INFO("Image is converted to matrix format");
-            
-    // to find white pixel in image
-    for(int i=0; i < img.height; i++) //traversing through image rows
-    {
-        for(int j=0; j < img.step; j++)// traversing through image columns
-        {
-            if(matrix_image[i][j] == white_pixel)
-            {
-                white_pixel_found = true;
-                ROS_INFO("White pixel found!!");
-
-                if(j < (img.width/3))
-                {
-                    side = left;
-                    ROS_INFO("White pixel found on left side of image");
-
-                }
-                else if((img.width/3) < j < 2*(img.width/3))
-                {
-                    side = middle;
-                    ROS_INFO("White pixel found at middel of image");
-                }    
-                else
-                {
-                    side = right;
-                    ROS_INFO("White pixel found on right side of image");
-                }    
-                               
-                break;
-            }
-        }
-    }  */
-
-    // driving robot 
-    /* if(white_pixel_found == true)
-    {
-        switch (side)
-        {
-            case 0: ROS_INFO("Image left");
-                    drive_robot(0,0.5);
-                    break;
-
-            case 1: ROS_INFO("Image middel");
-                    drive_robot(0.5,0);
-                    break;
-
-            case 2: ROS_INFO("Image right");
-                    drive_robot(0,-0.5);
-                    break;
-
-            default: ROS_INFO("You messed up!!");
-                    break;
-
-        }
-    }
-    else
-    {
-        drive_robot(0,0);
-        ROS_INFO("No white pixel found!!, STOP the robot"); 
-    } */
-        
-
-
 }
 
 int main(int argc, char** argv)
