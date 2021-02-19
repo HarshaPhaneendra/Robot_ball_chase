@@ -16,7 +16,9 @@
 ## Build and Run
 ### Terminal_1
 ```
-cd catkin_ws
+git clone git@github.com:HarshaPhaneendra/Robot_ball_chase.git
+mv -v Robot_ball_chase/* /home/<username>/catkin_ws/src/ 
+cd /home/<username>/catkin_ws
 catkin_make
 source devel/setup.bash
 roslaunch my_robot world.launch
@@ -25,7 +27,6 @@ roslaunch my_robot world.launch
 
 ### Terminal_2 
 ```
-cd catkin_ws
 source devel/setup.bash
 roslaunch ball_chaser ball_chaser.launch
 ```
