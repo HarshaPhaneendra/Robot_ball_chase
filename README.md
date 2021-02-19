@@ -14,19 +14,19 @@
 * drive_bot - Robot is driven according to the request made by previous node.
 
 ## Build and Run
+### Terminal_1
 ```
 cd catkin_ws
 catkin_make
 source devel/setup.bash
-```
-### Terminal_1
-```
 roslaunch my_robot world.launch
 ```
 - Set rviz Fixed Frames - odom. 
 
 ### Terminal_2 
 ```
+cd catkin_ws
+source devel/setup.bash
 roslaunch ball_chaser ball_chaser.launch
 ```
 - Place the "White ball" anywhere with in the robot's camera site.
