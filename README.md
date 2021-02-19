@@ -27,6 +27,7 @@ roslaunch my_robot world.launch
 
 ### Terminal_2 
 ```
+cd /home/<username>/catkin_ws
 source devel/setup.bash
 roslaunch ball_chaser ball_chaser.launch
 ```
